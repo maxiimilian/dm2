@@ -55,3 +55,15 @@ func (ds *Dataset) WriteTmpFilterFile() string {
 
 	return f.Name()
 }
+
+func getDatasetNames(datasets map[string]*Dataset) []string {
+	names := make([]string, len(datasets))
+
+	i := 0
+	for n := range datasets {
+		names[i] = n
+		i++
+	}
+
+	return names
+}

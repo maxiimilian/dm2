@@ -93,12 +93,21 @@ func (r *cliList) Run(ctx *cliContext) error {
 type cliInfo struct{}
 
 func (r *cliInfo) Run(ctx *cliContext) error {
+	// General info
 	fmt.Println("Dataset Manager 2")
 	fmt.Println("-----------------")
 	fmt.Println("Root directory: " + DMRoot)
 	fmt.Println("-> Config file:         ", DMConfigFile)
 	fmt.Println("-> Dataset definitions: ", DatasetFile)
 	fmt.Println("-> Global ignore list:  ", GlobalIgnoreFile)
+	fmt.Println()
+
+	// Dataset info
+	fmt.Println("Configured datasets:")
+	for _, d := range getDatasetNames(ctx.datasets) {
+		fmt.Println("* " + d)
+	}
+
 	return nil
 }
 
