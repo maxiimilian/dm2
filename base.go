@@ -8,13 +8,38 @@ import (
 var (
 	DebugLogger *log.Logger
 	InfoLogger  *log.Logger
+	WarnLogger  *log.Logger
 	ErrorLogger *log.Logger
 )
 
-func initLoggers(loggerOut io.Writer) {
-	DebugLogger = log.New(loggerOut, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
-	InfoLogger = log.New(loggerOut, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	ErrorLogger = log.New(loggerOut, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+const (
+	LevelDebug   = 40
+	LevelInfo    = 30
+	LevelWarning = 20
+	LevelError   = 10
+	LevelOff     = 0
+)
+
+func initLoggers(loggerOut io.Writer, logLevel int) {
+	const logFlags int = log.Ldate | log.Ltime | log.Lshortfile
+
+	DebugLogger = log.New(loggerOut, "DEBUG: ", logFlags)
+	InfoLogger = log.New(loggerOut, "INFO: ", logFlags)
+	WarnLogger = log.New(loggerOut, "WARNING: ", logFlags)
+	ErrorLogger = log.New(loggerOut, "ERROR: ", logFlags)
+
+	if logLevel < LevelDebug {
+		DebugLogger.SetOutput(io.Discard)
+	}
+	if logLevel < LevelInfo {
+		InfoLogger.SetOutput(io.Discard)
+	}
+	if logLevel < LevelWarning {
+		WarnLogger.SetOutput(io.Discard)
+	}
+	if logLevel < LevelError {
+		ErrorLogger.SetOutput(io.Discard)
+	}
 }
 
 func checkError(e error) {

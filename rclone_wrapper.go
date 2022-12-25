@@ -7,6 +7,7 @@ import (
 	"gopkg.in/ini.v1"
 	"os"
 	"os/exec"
+	"strconv"
 )
 
 type RcloneWrapper struct {
@@ -74,17 +75,21 @@ func (rc *RcloneWrapper) execBuffered(args ...string) string {
 
 func (rc *RcloneWrapper) prepareArgs(args []string) []string {
 	// Bin always has to be first argument
-	base_args := []string{rc.Config.Bin}
+	baseArgs := []string{
+		rc.Config.Bin,
+		"--transfers", strconv.Itoa(int(rc.Config.NTransfers)),
+		"--progress",
+	}
 
 	if rc.Config.Debug {
-		base_args = append(base_args, "--verbose")
+		baseArgs = append(baseArgs, "--verbose")
 	}
 
 	if rc.DryRun {
-		base_args = append(base_args, "--dry-run")
+		baseArgs = append(baseArgs, "--dry-run")
 	}
 
-	return append(base_args, args...)
+	return append(baseArgs, args...)
 }
 
 func (rc *RcloneWrapper) preparePath(path string) string {

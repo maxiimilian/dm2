@@ -71,8 +71,8 @@ func matchStringList(s string, reList []*regexp.Regexp) bool {
 	return false
 }
 
-func parseDatasetConfig(config []string, globalFilters *[]string) []*Dataset {
-	datasets := make([]*Dataset, 0)
+func parseDatasetConfig(config []string, globalFilters *[]string) map[string]*Dataset {
+	datasets := make(map[string]*Dataset)
 	var ds *Dataset
 	var name string
 
@@ -80,12 +80,14 @@ func parseDatasetConfig(config []string, globalFilters *[]string) []*Dataset {
 		if reSection.MatchString(line) {
 			// New dataset
 			name = reSection.FindStringSubmatch(line)[1] // first group is name
+			name = removeTrailSlash(name)                // remove trailing slash
+
 			ds = &Dataset{
 				name:          name,
 				filters:       make([]string, 0),
 				globalFilters: globalFilters,
 			}
-			datasets = append(datasets, ds)
+			datasets[name] = ds
 			continue
 		}
 
@@ -97,7 +99,7 @@ func parseDatasetConfig(config []string, globalFilters *[]string) []*Dataset {
 }
 
 // Load datasets from file and return slice of Dataset pointers
-func loadDatasetConfig(configPath string, globalFilters *[]string) []*Dataset {
+func loadDatasetConfig(configPath string, globalFilters *[]string) map[string]*Dataset {
 	keep := []*regexp.Regexp{reSection, reFilterLine}
 	config := readSanitizeConfig(configPath, keep, MODE_KEEP)
 	return parseDatasetConfig(config, globalFilters)
