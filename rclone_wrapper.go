@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"fmt"
 	"gopkg.in/ini.v1"
 	"os"
@@ -48,29 +46,13 @@ func (rc *RcloneWrapper) exec(args ...string) {
 		Path:   rc.Config.Bin,
 		Args:   args,
 		Stdout: os.Stdout,
+		Stdin:  os.Stdout,
+		Stderr: os.Stderr,
 	}
 
 	DebugLogger.Printf("Executing `%s`", cmd.String())
 	err := cmd.Run()
 	checkError(err)
-}
-
-// Execute arbitrary command with rclone and output to buffer
-func (rc *RcloneWrapper) execBuffered(args ...string) string {
-	args = rc.prepareArgs(args)
-
-	var buf bytes.Buffer
-	cmd := &exec.Cmd{
-		Path:   rc.Config.Bin,
-		Args:   args,
-		Stdout: bufio.NewWriter(&buf),
-	}
-
-	DebugLogger.Printf("Executing `%s`", cmd.String())
-	err := cmd.Run()
-	checkError(err)
-
-	return buf.String()
 }
 
 func (rc *RcloneWrapper) prepareArgs(args []string) []string {

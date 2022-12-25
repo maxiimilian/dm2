@@ -5,6 +5,13 @@ import (
 	"log"
 )
 
+const (
+	DMRoot           = ".dm"
+	DMConfigFile     = "config.ini"
+	DatasetFile      = "datasets.ini"
+	GlobalIgnoreFile = "ignore.txt"
+)
+
 var (
 	DebugLogger *log.Logger
 	InfoLogger  *log.Logger

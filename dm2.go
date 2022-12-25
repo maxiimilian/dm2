@@ -1,13 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"github.com/alecthomas/kong"
 	"os"
+	"os/exec"
+	"path/filepath"
 )
 
 // CLI Main.
 // Main command
 var cli struct {
+	Info cliInfo     `cmd:"" help:"Show infos about this repository."`
+	Edit cliEdit     `cmd:"" help:"Edit config files."`
 	List cliList     `cmd:"" help:"List available remote files or directories."`
 	Push cliPullPush `cmd:"" help:"Push local state of dataset to remote repository."`
 	Pull cliPullPush `cmd:"" help:"Pull remote state of dataset to local."`
@@ -46,6 +51,9 @@ type cliPullPush struct {
 func (r *cliPullPush) Run(ctx *cliContext) error {
 	_, filterPath := ctx.getDataset(r.Ds)
 
+	// Dry run flag is opposite of confirm flag
+	ctx.rc.DryRun = !r.Confirm
+
 	switch ctx.args[0] {
 	case "pull":
 		ctx.rc.exec("sync", ctx.remote, "--filter-from", filterPath, ".")
@@ -80,22 +88,73 @@ func (r *cliList) Run(ctx *cliContext) error {
 	return nil
 }
 
+// CLI sub command.
+// Show infos.
+type cliInfo struct{}
+
+func (r *cliInfo) Run(ctx *cliContext) error {
+	fmt.Println("Dataset Manager 2")
+	fmt.Println("-----------------")
+	fmt.Println("Root directory: " + DMRoot)
+	fmt.Println("-> Config file:         ", DMConfigFile)
+	fmt.Println("-> Dataset definitions: ", DatasetFile)
+	fmt.Println("-> Global ignore list:  ", GlobalIgnoreFile)
+	return nil
+}
+
+// CLI sub command.
+// Edit config files
+type cliEdit struct {
+	File string `arg:"" default:"datasets" enum:"config,datasets,ignore"`
+}
+
+func (r *cliEdit) Run(ctx *cliContext) error {
+	// Selct which file to edit
+	var file string
+	switch r.File {
+	case "config":
+		file = DMConfigFile
+	case "ignore":
+		file = GlobalIgnoreFile
+	default:
+		file = DatasetFile
+	}
+
+	// Prepare vim for editing
+	cmd := exec.Command("vim", filepath.Join(DMRoot, file))
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+
+	// Run it
+	err := cmd.Run()
+	checkError(err)
+
+	return nil
+}
+
 func main() {
 	// Init loggers
 	initLoggers(os.Stdout, LevelError)
 
+	// Check if root exists
+	_, err := os.Stat(DMRoot)
+	if os.IsNotExist(err) {
+		ErrorLogger.Fatalf("This directory does not contain the `%s` root directory. Please create it manually.", DMRoot)
+	}
+
 	// Setup rclone wrapper
-	rc := NewRcloneWrapper("example/dm.config.ini", true)
+	rc := NewRcloneWrapper(filepath.Join(DMRoot, DMConfigFile), true)
 
 	// Load global ignores
-	ignores := loadGlobalIgnore("example/global_ignore.txt")
+	ignores := loadGlobalIgnore(filepath.Join(DMRoot, GlobalIgnoreFile))
 
 	// Load datasets from file and prefix with rclone basedir
-	datasets := loadDatasetConfig("example/datasets.example.ini", ignores)
+	datasets := loadDatasetConfig(filepath.Join(DMRoot, DatasetFile), ignores)
 
 	// Parse arguments and run CLI
 	ctx := kong.Parse(&cli)
-	err := ctx.Run(&cliContext{
+	err = ctx.Run(&cliContext{
 		rc:       rc,
 		remote:   rc.preparePath(""),
 		datasets: datasets,
