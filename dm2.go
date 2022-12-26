@@ -143,6 +143,9 @@ func (r *cliEdit) Run(ctx *cliContext) error {
 }
 
 func main() {
+	// Parse arguments
+	ctx := kong.Parse(&cli)
+
 	// Init loggers
 	initLoggers(os.Stdout, LevelError)
 
@@ -161,8 +164,7 @@ func main() {
 	// Load datasets from file and prefix with rclone basedir
 	datasets := loadDatasetConfig(filepath.Join(DMRoot, DatasetFile), ignores)
 
-	// Parse arguments and run CLI
-	ctx := kong.Parse(&cli)
+	// Run cli
 	err = ctx.Run(&cliContext{
 		rc:       rc,
 		remote:   rc.preparePath(""),

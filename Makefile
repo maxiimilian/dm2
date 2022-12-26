@@ -1,4 +1,4 @@
-.PHONY: all
+.PHONY: all install
 
 # Build native go app
 dm2: *.go
@@ -16,3 +16,6 @@ dm2_linux_x64: *.go
 	GOOS=linux GOARCH=amd64 go build -o dist/$@ .
 
 all: dm2 dm2_linux_x64 dm2_mac_arm64
+
+install: dm2
+	go install
