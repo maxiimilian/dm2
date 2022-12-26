@@ -8,6 +8,9 @@ import (
 	"path/filepath"
 )
 
+var buildTime = "dev"
+var buildHash = "dev"
+
 // CLI Main.
 // Main command
 var cli struct {
@@ -96,6 +99,10 @@ func (r *cliInfo) Run(ctx *cliContext) error {
 	// General info
 	fmt.Println("Dataset Manager 2")
 	fmt.Println("-----------------")
+	fmt.Printf("Build time: %s \n", buildTime)
+	fmt.Printf("Git commit: %s \n", buildHash)
+	fmt.Println()
+
 	fmt.Println("Root directory: " + DMRoot)
 	fmt.Println("-> Config file:         ", DMConfigFile)
 	fmt.Println("-> Dataset definitions: ", DatasetFile)
