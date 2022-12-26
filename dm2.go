@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/alecthomas/kong"
+	"github.com/posener/complete"
+	"github.com/willabides/kongplete"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,11 +13,12 @@ import (
 // CLI Main.
 // Main command
 var cli struct {
-	Info cliInfo     `cmd:"" help:"Show infos about this repository."`
-	Edit cliEdit     `cmd:"" help:"Edit config files."`
-	List cliList     `cmd:"" help:"List available remote files or directories."`
-	Push cliPullPush `cmd:"" help:"Push local state of dataset to remote repository."`
-	Pull cliPullPush `cmd:"" help:"Pull remote state of dataset to local."`
+	Info               cliInfo                      `cmd:"" help:"Show infos about this repository."`
+	Edit               cliEdit                      `cmd:"" help:"Edit config files."`
+	List               cliList                      `cmd:"" help:"List available remote files or directories."`
+	Push               cliPullPush                  `cmd:"" help:"Push local state of dataset to remote repository."`
+	Pull               cliPullPush                  `cmd:"" help:"Pull remote state of dataset to local."`
+	InstallCompletions kongplete.InstallCompletions `cmd:"" help:"install shell completions"`
 }
 
 // CLI context.
@@ -143,14 +146,21 @@ func (r *cliEdit) Run(ctx *cliContext) error {
 }
 
 func main() {
-	// Parse arguments
-	ctx := kong.Parse(&cli)
-
 	// Init loggers
 	initLoggers(os.Stdout, LevelError)
 
+	// Setup CLI parser and bash completer
+	cliParser := kong.Must(&cli)
+	kongplete.Complete(cliParser,
+		kongplete.WithPredictor("ds", complete.PredictDirs("./")),
+	)
+
+	// Parse arguments
+	ctx, err := cliParser.Parse(os.Args[1:])
+	cliParser.FatalIfErrorf(err)
+
 	// Check if root exists
-	_, err := os.Stat(DMRoot)
+	_, err = os.Stat(DMRoot)
 	if os.IsNotExist(err) {
 		ErrorLogger.Fatalf("This directory does not contain the `%s` root directory. Please create it manually.", DMRoot)
 	}
