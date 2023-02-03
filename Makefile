@@ -1,6 +1,6 @@
 .PHONY: all install
 
-BUILD_TIME := $(shell date +%Y-%m-%dT%H-%M-%S)
+BUILD_TIME := $(shell date +%Y-%m-%dT%H:%M:%S)
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
 FLAGS := -ldflags="-X 'main.buildTime=${BUILD_TIME}' -X 'main.buildHash=${GIT_COMMIT}'"
 
@@ -20,6 +20,3 @@ dm2_linux_x64: *.go
 	GOOS=linux GOARCH=amd64 go build -o dist/$@ ${FLAGS} .
 
 all: dm2 dm2_linux_x64 dm2_mac_arm64
-
-install: dm2
-	go install

@@ -1,0 +1,1 @@
+- [ ] Refactor CLI so that content of currecnt cliContent is created only for some commands. E.g. for `init` it should not be created because it raises errors of non-existing files.

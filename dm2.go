@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/alecthomas/kong"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/alecthomas/kong"
 )
 
 var buildTime = "dev"
@@ -14,6 +15,7 @@ var buildHash = "dev"
 // CLI Main.
 // Main command
 var cli struct {
+	Init cliInit     `cmd:"" help:"Initialize current directory as new root."`
 	Info cliInfo     `cmd:"" help:"Show infos about this repository."`
 	Edit cliEdit     `cmd:"" help:"Edit config files."`
 	List cliList     `cmd:"" help:"List available remote files or directories."`
@@ -42,6 +44,28 @@ func (ctx *cliContext) getDataset(dsName string) (*Dataset, string) {
 	filterPath := ds.WriteTmpFilterFile()
 
 	return ds, filterPath
+}
+
+// CLI sub command.
+// Init.
+type cliInit struct{}
+
+func (r *cliInit) Run(ctx *cliContext) error {
+	// Note: Root dir has to be created manually by the user.
+	// Make new config
+
+	// Write default ignore
+	f, err := os.Create(filepath.Join(DMRoot, GlobalIgnoreFile))
+	checkError(err)
+	defer f.Close()
+
+	_, err = f.WriteString(GlobalIgnoreDefault)
+	checkError(err)
+
+	// Make new empty dataset file
+	os.OpenFile(DatasetFile, os.O_RDONLY|os.O_CREATE, 0666)
+
+	return nil
 }
 
 // CLI sub command.
